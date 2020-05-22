@@ -2,84 +2,109 @@
 
 #include <memory>
 
-//template<typename T>
-//class WeakPtr {
-//private:
-//    friend std::shared_ptr<T>;
-////    struct weak_count{
-////        size_t n = 0;
-////    };
-//    size_t* weak_count_;
-//
-//
-//
-//public:
-//    WeakPtr() : weak_count_(new WeakReference) {}
-//
-//    WeakPtr(const WeakPtr<T>& ptr)
-//    {
-//        ref_ = ptr.ref_;
-//    }
-//
-//    WeakPtr(const std::shared_ptr<T>& ptr) : ref_(new WeakReference)
-//    {
-//        ref_->shared_ptr_count_ = ptr.use_count();
-//        ref_->ptr_ = ptr.get;
-//    }
-//
-//    explicit operator std::shared_ptr<T>()
-//    {
-//
-//    }
-//
-//    std::shared_ptr<T> lock()
-//    {
-//        if (ref_->shared_ptr_count_ == 0)
-//        {
-//            return std::shared_ptr<T>();
-//        }
-//        else{
-//            ref_->shared_ptr_count_
-//        }
-//    }
-//
-//    ~WeakPtr()
-//    {
-//        if (weak_count_ <= 1)
-//        {
-//            delete ptr;
-//        }
-//    }
-//
-//};
+template<typename T>
+class WeakPtr;
 
-//template<typename T>
-//class WeakPtr {
-//private:
-//    struct Reference {
-//        size_t n = 0;
-//        T* ptr = nullptr;
-//
-//        Reference() : n(1), ptr(new T) {}
-//    };
-//
-//    Reference* ref_;
-//
-//public:
-//    WeakPtr() : ref_(new Reference) {}
-//
-//    WeakPtr(const WeakPtr<T>& ptr)
-//    {
-//        ptr.ref_->n++;
-//        ref_ = ptr.ref_;
-//    }
-//
-//    WeakPtr(const std::shared_ptr<T>& ptr)
-//    {
-//
-//    }
-//
-//};
+template<typename T>
+class SharedPtr
+{
+private:
+    friend WeakPtr<T>;
+    size_t* count_;
+    T* ptr_ = nullptr;
+
+public:
+    SharedPtr()
+    {
+        count_ = new size_t{0};
+    }
+
+    SharedPtr(T* ptr) : ptr_(ptr)
+    {
+        count_ = new size_t{1};
+    }
+
+    SharedPtr(const SharedPtr& ptr)
+    {
+        count_ = ptr.count_;
+        ++(*count_);
+    }
+
+    SharedPtr(WeakPtr<T>& ptr)
+    {
+        ++(*(ptr.shared_count_));
+        count_ = ptr.shared_count_;
+        ptr_ = ptr.ptr_;
+        *(ptr.weak_count_) = 2;
+    }
+
+    size_t use_count()
+    {
+        return *count_;
+    }
+
+    ~SharedPtr()
+    {
+        if (*count_ <= 1)
+        {
+            delete count_;
+            delete ptr_;
+        }
+        else{
+            --(*count_);
+        }
+    }
+};
 
 
+template<typename T>
+class WeakPtr {
+private:
+    friend SharedPtr<T>;
+    size_t* shared_count_;
+    size_t* weak_count_;
+    T* ptr_ = nullptr;
 
+public:
+    WeakPtr()
+    {
+        shared_count_ = new size_t{0};
+        weak_count_ = new size_t{0};
+    }
+
+    WeakPtr(T* ptr) : ptr_(ptr)
+    {
+        shared_count_ = new size_t{0};
+        weak_count_ = new size_t{1};
+    }
+
+    WeakPtr(const WeakPtr& ptr) = default;
+
+    WeakPtr(const SharedPtr<T>& ptr)
+    {
+        shared_count_ = ptr.count_;
+        weak_count_ = new size_t{2};
+        ptr_ = ptr.ptr_;
+    }
+
+    SharedPtr<T> lock()
+    {
+        if (*weak_count_ == 0) // ptr_->nullptr
+        {
+            SharedPtr<T>();
+        }
+        else{
+            return SharedPtr(*this);
+        }
+    }
+
+    ~WeakPtr()
+    {
+        if (*shared_count_ = 0)
+        {
+            delete shared_count_;
+            delete weak_count_;
+            delete ptr_;
+        }
+    }
+};
