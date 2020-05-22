@@ -28,6 +28,7 @@ public:
     {
         count_ = ptr.count_;
         ++(*count_);
+        ptr_ = ptr.ptr_;
     }
 
     SharedPtr(WeakPtr<T>& ptr)
@@ -48,7 +49,7 @@ public:
         if (*count_ <= 1)
         {
             delete count_;
-            delete ptr_;
+            if (ptr_ != nullptr) delete ptr_;
         }
         else{
             --(*count_);
@@ -78,7 +79,12 @@ public:
         weak_count_ = new size_t{1};
     }
 
-    WeakPtr(const WeakPtr& ptr) = default;
+    WeakPtr(const WeakPtr& ptr)
+    {
+        shared_count_ = ptr.shared_count_;
+        weak_count_ = ptr.weak_count_;
+        ptr_ = ptr.ptr_;
+    };
 
     WeakPtr(const SharedPtr<T>& ptr)
     {
@@ -100,11 +106,17 @@ public:
 
     ~WeakPtr()
     {
-        if (*shared_count_ = 0)
+        if (*weak_count_ <= 1)
         {
             delete shared_count_;
             delete weak_count_;
-            delete ptr_;
+            if (ptr_!=nullptr) delete ptr_;
+        }
+        else if (*shared_count_ = 0)
+        {
+            delete shared_count_;
+            delete weak_count_;
+            if (ptr_!=nullptr) delete ptr_;
         }
     }
 };

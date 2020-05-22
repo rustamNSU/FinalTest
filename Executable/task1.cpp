@@ -21,9 +21,9 @@ int main()
     SharedPtr<int> a1(new int);
     auto a2(a1);
     std::cout << "a1.use_count() = " << a1.use_count() << std::endl;
-    WeakPtr a3 = a2;
+    WeakPtr a3(a2);
     std::cout << "a1.use_count() = " << a1.use_count() << std::endl;
-    SharedPtr a4 = a1;
+    SharedPtr a4(a3);
     std::cout << "a1.use_count() = " << a1.use_count() << std::endl;
 
     return 0;
